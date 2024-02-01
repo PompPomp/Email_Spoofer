@@ -8,9 +8,18 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+def check_url_extension(domain):
+    valid_extensions = [".com", ".sg", ".net"]
+    url_without_params = domain.split('?')[0].split('#')[0]
+
+    for extension in valid_extensions:
+        if url_without_params.endswith(extension):
+            return True
+
+    return False
 
 class EmailSpoofer:
-    def __init__(self):
+    def __init__(self, domain):
         self.KDF_ALGORITHM = hashes.SHA256()
         self.KDF_LENGTH = 32
         self.KDF_ITERATIONS = 120000
@@ -18,25 +27,10 @@ class EmailSpoofer:
         self.save_exists = False
         self.credentials_path = "./credentials.txt"
         self.session_pass = ""
-
-        # Get domain name
-        while True:
-            self.domain = input("Enter domain to search: ")
-            if self.check_url_extension():
-                break
-            print("Enter a valid domain!")
+        self.domain = domain
 
         if os.path.exists(self.credentials_path):
             self.save_exists = True
-
-    def check_url_extension(self):
-        valid_extensions = [".com", ".sg", ".net"]
-        url_without_params = self.domain.split('?')[0].split('#')[0]
-
-        for extension in valid_extensions:
-            if url_without_params.endswith(extension):
-                return True
-        return False
 
     def encrypt(self, plaintext: str, password: str) -> (bytes, bytes):
 
@@ -221,7 +215,14 @@ class EmailSpoofer:
 
 
 def main():
-    email_spoofer = EmailSpoofer()
+    # Get domain name
+    while True:
+        domain = input("Enter domain to search: ")
+        if check_url_extension(domain):
+            break
+        print("Enter a valid domain!")
+
+    email_spoofer = EmailSpoofer(domain)
     email_spoofer.check_for_prerequisites()
 
     if os.path.isfile(f"./email_lists/{email_spoofer.domain}_emails.txt"):
