@@ -16,6 +16,8 @@ KDF_ITERATIONS = 120000
 api_key = ""
 save_exists = False
 credentials_path = "./credentials.txt"
+session_pass = ""
+
 if os.path.exists(credentials_path):
     save_exists = True
 
@@ -106,8 +108,6 @@ def save_session(username, password, api_key, smtp_server, port):
         encrypted_password, salt_pass = encrypt(password, session_pass)
         encrypted_apikey, salt_api = encrypt(api_key, session_pass)
 
-        api_key = decrypt(encrypted_apikey, session_pass, salt_api)
-
         with open(credentials_path, 'w') as file:
             file.write(username + "\n")
             file.write(encrypted_password.decode() + "\n")
@@ -115,7 +115,6 @@ def save_session(username, password, api_key, smtp_server, port):
             file.write(smtp_server + "\n")
             file.write(port)
 
-        salts = []
         with open('./salts', 'wb') as file:
             file.write(salt_pass)
             file.write(salt_api)
@@ -124,8 +123,11 @@ def save_session(username, password, api_key, smtp_server, port):
 
 
 def read_from_save():
+    global session_pass
     try:
-        session_pass = getpass.getpass("Enter session password: ")
+        if session_pass == "":
+            session_pass = getpass.getpass("Enter session password: ")
+
         file = open(credentials_path)
         content = file.readlines()
 
